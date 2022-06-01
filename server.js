@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
+const res = require('express/lib/response');
 const MongoClient = require('mongodb').MongoClient;
 
 const password = '';
@@ -22,6 +23,8 @@ MongoClient.connect(connectionString)
     // make anki when understand what this does
     // puts data in the request body
     app.use(bodyParser.urlencoded({ extended: true }));
+    // tells express to expect ejs
+    app.set('view engine', 'ejs');
 
     // ========================
     // Routes
@@ -29,16 +32,23 @@ MongoClient.connect(connectionString)
 
     // We normally abbreviate `request` to `req` and `response` to `res`.
     // "/" is the endpoint on the home page aka http://localhost:8000
-    app.get('/', (res, req) => {
+    app.get('/', (req, res) => {
       // res.sendFile(__dirname + '/index.html');
       // res.sendFile(__dirname + '/index.html');
+
       // cursor object by itself is huge but we can use .toArray to return only an array of the collection documents
       const cursor = db
         .collection('quotes')
         .find()
         .toArray()
-        .then((results) => console.log(results))
+        .then((results) => {
+          res.render('index.ejs', { quotes: results });
+        })
         .catch((err) => console.error(err));
+      // res.render(view, locals)
+      // view is the name of the file we’re rendering. This file must be placed inside a views folder.
+      //locals is the data passed into the file.
+      // res.render('index.ejs', {});
     });
 
     // because we need the db variable, we need the express handlers within the then call
