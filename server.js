@@ -3,9 +3,12 @@ const app = express();
 const bodyParser = require('body-parser');
 const res = require('express/lib/response');
 const MongoClient = require('mongodb').MongoClient;
+// https://zellwk.com/blog/environment-variables/
+const dotenv = require('dotenv').config({
+  path: './secrets/.env',
+});
 
-const password = '';
-const connectionString = `mongodb+srv://ryan2505:${password}@cluster0.45elsxf.mongodb.net/?retryWrites=true&w=majority`;
+const connectionString = process.env.DB_URL;
 
 MongoClient.connect(connectionString)
   .then((client) => {
