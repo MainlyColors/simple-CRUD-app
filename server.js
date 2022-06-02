@@ -25,7 +25,10 @@ MongoClient.connect(connectionString)
     app.use(bodyParser.urlencoded({ extended: true }));
     // tells express to expect ejs
     app.set('view engine', 'ejs');
-
+    // tells express to treat the public folder files as static files
+    app.use(express.static('public'));
+    // lets us read json data
+    app.use(bodyParser.json());
     // ========================
     // Routes
     // ========================
@@ -58,6 +61,46 @@ MongoClient.connect(connectionString)
         .insertOne(req.body)
         .then((result) => {
           res.redirect('/'); // redirect page back to homepage after inserting document into collection (db)
+        })
+        .catch((err) => console.error(err));
+    });
+
+    app.put('/quotes', (req, res) => {
+      //findOneAndUpdate takes 3 args query, update,options
+      // query = filter collection, only object containing {name: 'yoda'}
+      // update tells mongoDB what to change using MongoDBs update operators
+      // here we are changing whats in the DB with what we received from the put request that sent JSON object
+      quotesCollection
+        .findOneAndUpdate(
+          { name: 'yoda' },
+          {
+            $set: {
+              name: req.body.name,
+              quote: req.body.quote,
+            },
+          },
+          {
+            // if no yoda quotes exist, make a darth vadar quote
+            upsert: true,
+          }
+        )
+        .then((result) => {
+          res.json('Success');
+          // console.log(result)
+        })
+        .catch((err) => console.error(err));
+    });
+
+    app.delete('/quotes', (req, res) => {
+      // deleteOne takes 2 parameters, query, options
+      // query is the same as findOneAndUpdate, options can be omitted if we don't need it
+      quotesCollection
+        .deleteOne({ name: req.body.name })
+        .then((result) => {
+          if (result.deletedCount === 0) {
+            return res.json('No quote to Delete');
+          }
+          res.json('Successful Delete');
         })
         .catch((err) => console.error(err));
     });
